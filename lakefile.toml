@@ -1,0 +1,10 @@
+name = "lfa-lean"
+version = "0.1.0"
+defaultTargets = ["lfa-lean"]
+
+[[lean_lib]]
+name = "LfaLean"
+
+[[lean_exe]]
+name = "lfa-lean"
+root = "Main"
