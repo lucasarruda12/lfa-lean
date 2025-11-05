@@ -29,7 +29,6 @@ def Symbol.fromString
   (s : String) : List Symbol
 := s.data.map Symbol.fromChar
 
-
 structure ContextFreeRule where
   input : Char
   output : List (Symbol)

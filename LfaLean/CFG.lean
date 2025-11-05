@@ -5,8 +5,8 @@ data symbol V S = terminal V | nonterminal S
 inductive Symbol
   (V : Type) (S : Type)
 where
-  | terminal (v : V) : Symbol V S
-  | nonterminal (s : S) : Symbol V S
+  | terminal : S → Symbol V S
+  | nonterminal : V → Symbol V S
 
 def reprAux : Symbol Char Char → Std.Format
   | Symbol.terminal c =>  Std.Format.text c.toString
@@ -32,10 +32,6 @@ where
 
 instance (priority := low) (A B : Type) [Repr A] [Repr B] : Repr (ContextFreeRule A B) where
   reprPrec r _ := (Repr.reprPrec r.input 0) ++ Std.Format.text " ↦ " ++ (r.output.map repr).foldr (Std.Format.append) ""
-
-instance (priority := high) : Repr (ContextFreeRule Char Char) where
-  reprPrec r _ := (reprAux $ Symbol.nonterminal r.input) ++ Std.Format.text " ↦ " ++ (r.output.map reprAux).foldr (Std.Format.append) ""
-
 structure ContextFreeGrammar
   (V : Type) (S : Type) : Type
 where
@@ -60,6 +56,7 @@ não compilaria em Lean!
 /-
 Definindo uma ContextFreeGrammar
 -/
+
 def myFirstCFG : ContextFreeGrammar Char Char where
   init := 'S'
   rules := [
@@ -69,4 +66,28 @@ def myFirstCFG : ContextFreeGrammar Char Char where
     ⟨'N', [Symbol.terminal 's', Symbol.nonterminal 'N']⟩
   ]
 
-#check myFirstCFG
+#eval myFirstCFG
+
+def myFirstCFR : ContextFreeRule Char Char where
+  input := 'S'
+  output := [Symbol.terminal 's', Symbol.nonterminal 'S']
+
+inductive ContextFreeRule.rewrites (r : ContextFreeRule V S) : List (Symbol V S) → List (Symbol V S) → Prop
+  | head s : r.rewrites (Symbol.nonterminal r.input :: s) (r.output ++ s)
+  | cons x (hrs : r.rewrites s₁ s₂) : r.rewrites (x :: s₁) (x :: s₂)
+
+theorem myfirstCFR_rewrites_aS_asS : myFirstCFR.rewrites [Symbol.terminal 'a', Symbol.nonterminal 'S'] [Symbol.terminal 'a', Symbol.terminal 's', Symbol.nonterminal 'S'] := by
+  apply ContextFreeRule.rewrites.cons
+  apply ContextFreeRule.rewrites.head
+
+def ContextFreeGrammar.rewrites (c : ContextFreeGrammar V S) (w₁ w₂ : List (Symbol V S))
+  : Prop
+:= ∃ r ∈ c.rules, r.rewrites w₁ w₂
+
+def ContextFreeGrammar.derives (c : ContextFreeGrammar V S) (w : List (Symbol V S))
+  : Prop
+:= sorry
+
+def ContextFreeGrammar.recognizes (w : List S) (c : ContextFreeGrammar V S)
+  : Prop
+:= sorry
