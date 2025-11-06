@@ -75,10 +75,6 @@ protected def Example.myFirstCFG : ContextFreeGrammar Char Char where
 
 #eval Example.myFirstCFG
 
-def myFirstCFR : ContextFreeRule Char Char where
-  input := 'S'
-  output := [Symbol.terminal 's', Symbol.nonterminal 'S']
-
 end Example
 
 /- Se eu consigo ir de w₁ para w₂ a partir de uma regra A ↦ w -/
@@ -91,6 +87,16 @@ def ContextFreeGrammar.rewrites (c : ContextFreeGrammar V S) (w₁ w₂ : List (
   : Prop
 := ∃ r ∈ c.rules, r.rewrites w₁ w₂
 
+/- O fecho reflexivo e transitivo da C.rewrites. Significa que de w₁ eu consigo chegar em w₂ usando só regras de derivação em C -/
+inductive ContextFreeGrammar.derives (C : ContextFreeGrammar V S) : List (Symbol V S) → List (Symbol V S) → Prop
+  | refl : derives C w w
+  | tail : derives C w₁ w₂ → C.rewrites w₂ w₃ → derives C w₁ w₃
+
+/- Se eu consigo ir de S até w -/
+def ContextFreeGrammar.produces
+  (C : ContextFreeGrammar V S) (w : List (Symbol V S)) : Prop
+:= C.derives [Symbol.nonterminal C.init] w
+
 inductive ContextFreeGrammar.usefull : ContextFreeGrammar V S → V → Prop
 /- A variável inicial é sempre útil -/
   | init C : usefull C C.init
@@ -100,7 +106,3 @@ inductive ContextFreeGrammar.usefull : ContextFreeGrammar V S → V → Prop
 def ContextFreeGrammar.useless
   (C : ContextFreeGrammar V S) (v : V) : Prop
 := ¬C.usefull v
-
-def ContextFreeGrammar.derives (c : ContextFreeGrammar V S) (w : List (Symbol V S))
-  : Prop
-:= sorry /- Deveria ser o fecho transitivo da relação de rewrites -/
