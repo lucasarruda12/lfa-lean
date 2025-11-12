@@ -3,21 +3,21 @@ inductive Symbol
 where
   | terminal : S → Symbol V S
   | nonterminal : V → Symbol V S
-deriving Repr
+deriving Repr, BEq
 
 structure ContextFreeRule
   (V : Type) (S : Type)
 where
   input : V
   output : List (Symbol V S)
-deriving Repr
+deriving Repr, BEq
 
 structure ContextFreeGrammar
   (V : Type) (S : Type) : Type
 where
   init : V
   rules : List (ContextFreeRule V S)
-deriving Repr
+deriving Repr, BEq
 
 -- Pra printar bonitinho
 section Representation
@@ -70,7 +70,8 @@ protected def Example.myFirstCFG : ContextFreeGrammar Char Char where
     ⟨'S', [Symbol.nonterminal 'S', Symbol.terminal '+', Symbol.nonterminal 'S']⟩,
     ⟨'S', [Symbol.nonterminal 'N']⟩,
     ⟨'N', [Symbol.terminal '0']⟩,
-    ⟨'N', [Symbol.terminal 's', Symbol.nonterminal 'N']⟩
+    ⟨'N', [Symbol.terminal 's', Symbol.nonterminal 'N']⟩,
+    ⟨'U', [Symbol.terminal '⌣']⟩
   ]
 
 #eval Example.myFirstCFG
@@ -96,13 +97,3 @@ inductive ContextFreeGrammar.derives (C : ContextFreeGrammar V S) : List (Symbol
 def ContextFreeGrammar.produces
   (C : ContextFreeGrammar V S) (w : List (Symbol V S)) : Prop
 := C.derives [Symbol.nonterminal C.init] w
-
-inductive ContextFreeGrammar.usefull : ContextFreeGrammar V S → V → Prop
-/- A variável inicial é sempre útil -/
-  | init C : usefull C C.init
-/- Uma variável é util se ela é output de uma variável útil -/
-  | fromUsefull C v (u : ContextFreeRule V S) (usefull_u : usefull C u.input) (h : (Symbol.nonterminal v) ∈ u.output): usefull C v
-
-def ContextFreeGrammar.useless
-  (C : ContextFreeGrammar V S) (v : V) : Prop
-:= ¬C.usefull v
